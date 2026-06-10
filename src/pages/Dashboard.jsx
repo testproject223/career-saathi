@@ -1,111 +1,200 @@
+import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom'
-import { Briefcase, FileText, BookOpen, UserCheck, Lightbulb, Rocket, Mic, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { CTC_MAP, getPersonaLine } from '../lib/persona'
 
-const INTENT_OPTIONS = [
-  { to:'/jobs',     icon:Briefcase,  label:'Find a job',          sub:'Live roles matched to your skills', color:'var(--brand)',   bg:'var(--brand-light)' },
-  { to:'/resume',   icon:FileText,   label:'Build resume + LinkedIn', sub:'ATS resume + profile copy',    color:'#7c3aed',       bg:'#f5f3ff' },
-  { to:'/courses',  icon:BookOpen,   label:'Learn and apply',     sub:'Courses + skills + jobs',           color:'var(--success)', bg:'var(--success-light)' },
-  { to:'/interview',icon:Mic,        label:'Interview prep',      sub:'Mock Q&A · readiness score',        color:'#db2777',       bg:'#fdf2f8' },
-  { to:'/projects', icon:Lightbulb,  label:'Build portfolio',     sub:'Open source + project ideas',       color:'var(--warning)', bg:'var(--warning-light)' },
-  { to:'/start-learning',icon:Rocket,label:'My learning plan',    sub:'Full roadmap + total cost',         color:'var(--brand)',   bg:'var(--brand-light)' },
+const INDIA_FACTS = [
+  { tag: 'India · AI & Jobs',      text: 'India added 1.4 lakh AI-related jobs in 2024 — yet 68% of resumes never pass ATS filters. An optimised resume is now a basic career survival skill.' },
+  { tag: 'India · Salary insight', text: 'Professionals who negotiate their offer in India earn ₹1.5–4L more per year than those who accept the first number. Every conversation counts.' },
+  { tag: 'India · LinkedIn',       text: 'Over 9.5 crore Indians are on LinkedIn but only 12% have a complete profile. A strong headline alone increases recruiter views by 14×.' },
+  { tag: 'India · Interviews',     text: '70% of Indian job seekers fail at the first interview — not due to lack of skill, but lack of structured preparation. Mock practice changes this.' },
+  { tag: 'India · Hiring trends',  text: '52% of Indian recruiters now use AI tools to shortlist candidates before any human review. Keywords and format are no longer optional.' },
 ]
 
-const RESUME_FACTS = [
-  '75% of resumes are rejected by ATS before a human ever sees them.',
-  'Recruiters spend an average of 7 seconds scanning a resume.',
-  'Resumes with quantified achievements get 40% more callbacks.',
-  'A strong LinkedIn headline increases profile views by 14×.',
-  'AI-optimised resumes get 2× more interview calls on average.',
+const SERVICES = [
+  { id: 'jobs',      icon: '💼', label: 'Find a job',        sub: 'Live roles · matched to you',       cost: 0,    to: '/jobs' },
+  { id: 'resume',    icon: '📄', label: 'Resume + LinkedIn', sub: 'AI-generated · ATS-ready',           cost: 0,    to: '/resume' },
+  { id: 'courses',   icon: '📚', label: 'Learn and apply',   sub: '₹0–3,200 · pick courses',            cost: 0,    to: '/courses' },
+  { id: 'interview', icon: '🎤', label: 'Interview prep',    sub: 'Free · mock Q&A + score',            cost: 0,    to: '/interview' },
+  { id: 'projects',  icon: '💡', label: 'Build portfolio',   sub: '₹0–999 · open source + ideas',       cost: 0,    to: '/projects' },
+  { id: 'plan',      icon: '🚀', label: 'My learning plan',  sub: 'Full roadmap · cost summary',        cost: 0,    to: '/start-learning' },
 ]
 
 export default function Dashboard() {
   const { profile } = useAuth()
   const navigate = useNavigate()
+  const [selected, setSelected] = useState(new Set(['jobs']))
+  const [showBanner, setShowBanner] = useState(false)
+  const [factIdx, setFactIdx] = useState(0)
+  const [factVisible, setFactVisible] = useState(true)
+  const factTimer = useRef(null)
+
   const expSlab = profile?.experience_slab || '0-2'
-  const sector = profile?.sector || 'private'
-  const ctcData = CTC_MAP[expSlab]?.[sector] || CTC_MAP['0-2'].private
-  const personaLine = getPersonaLine(expSlab)
-  const isProfileComplete = profile?.city && profile?.aspiration
-  const randomFact = RESUME_FACTS[Math.floor(Math.random() * RESUME_FACTS.length)]
-  const lastCtc = parseFloat(profile?.last_ctc_lpa) || 0
+  const sector   = profile?.sector || 'private'
+  const ctcData  = CTC_MAP[expSlab]?.[sector] || CTC_MAP['0-2'].private
+  const persona  = getPersonaLine(expSlab)
+  const lastCtc  = parseFloat(profile?.last_ctc_lpa) || 0
   const showDeserving = expSlab !== '0-2' && lastCtc >= 10
 
-  return (
-    <div style={{padding:'2rem 0'}}>
-      <div className="page-container">
+  // Show banner 1s after load
+  useEffect(() => {
+    const t = setTimeout(() => setShowBanner(true), 1000)
+    return () => clearTimeout(t)
+  }, [])
 
-        {/* Persona greeting */}
-        <div style={{display:'flex',gap:'12px',alignItems:'flex-start',marginBottom:'1.5rem'}}>
-          <div style={{width:'46px',height:'46px',borderRadius:'50%',background:'var(--brand-light)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',fontWeight:'700',color:'var(--brand)',flexShrink:0}}>
-            {profile?.name?.[0]?.toUpperCase() || 'U'}
-          </div>
+  // Rotate facts every 5s
+  useEffect(() => {
+    factTimer.current = setInterval(() => {
+      setFactVisible(false)
+      setTimeout(() => {
+        setFactIdx(i => (i + 1) % INDIA_FACTS.length)
+        setFactVisible(true)
+      }, 400)
+    }, 5000)
+    return () => clearInterval(factTimer.current)
+  }, [])
+
+  function toggleService(id) {
+    setSelected(prev => {
+      const s = new Set(prev)
+      s.has(id) ? s.delete(id) : s.add(id)
+      return s
+    })
+  }
+
+  const totalCost = [...selected].reduce((sum, id) => {
+    const s = SERVICES.find(x => x.id === id)
+    return sum + (s?.cost || 0)
+  }, 0)
+
+  const firstDest = SERVICES.find(s => selected.has(s.id))?.to || '/jobs'
+  const bannerLabel = selected.size === 1
+    ? `Let's go — ${SERVICES.find(s => selected.has(s.id))?.label}`
+    : `${selected.size} services selected · ${totalCost === 0 ? 'Free' : '₹' + totalCost.toLocaleString('en-IN')}`
+
+  const fact = INDIA_FACTS[factIdx]
+  const isProfileComplete = profile?.city && profile?.aspiration
+
+  return (
+    <div style={{ padding: '1.5rem 0', paddingBottom: '100px' }}>
+      <div className="page-container" style={{ maxWidth: '740px' }}>
+
+        {/* नमस्ते greeting */}
+        <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+          <div style={{ fontSize: '44px', lineHeight: 1, opacity: .85, flexShrink: 0, marginTop: '2px' }}>🙏</div>
           <div>
-            <h1 style={{fontSize:'20px',fontWeight:'700'}}>Namaste, {profile?.name?.split(' ')[0] || 'there'} 👋</h1>
-            <p style={{color:'var(--gray-500)',marginTop:'3px',fontSize:'14px',lineHeight:'1.5'}}>{personaLine}</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '22px', fontWeight: '500', fontFamily: 'serif' }}>नमस्ते,</span>
+              <span style={{ fontSize: '17px', color: 'var(--gray-500)' }}>{profile?.name?.split(' ')[0] || 'there'}</span>
+            </div>
+            <p style={{ color: 'var(--gray-500)', fontSize: '13px', marginTop: '4px', lineHeight: '1.6' }}>{persona}</p>
           </div>
         </div>
 
-        {/* CTC motivation card */}
-        {isProfileComplete && (
-          <div style={{background:'#fff',border:'1px solid var(--gray-200)',borderLeft:'4px solid var(--brand)',borderRadius:'0 var(--radius-lg) var(--radius-lg) 0',padding:'1rem 1.25rem',marginBottom:'1.5rem',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'1rem',flexWrap:'wrap'}}>
-            <div style={{flex:1}}>
-              <p style={{fontSize:'14px',fontWeight:'600',color:'var(--brand)',marginBottom:'4px'}}>{ctcData.line}</p>
-              <p style={{fontSize:'13px',color:'var(--gray-600)',lineHeight:'1.6'}}>{ctcData.sub}</p>
-              {showDeserving && (
-                <p style={{fontSize:'13px',color:'var(--success)',fontWeight:'500',marginTop:'6px'}}>
-                  ✨ With ₹{lastCtc}L last CTC — your next role should absolutely be higher. You've earned it.
-                </p>
-              )}
+        {/* Profile incomplete warning */}
+        {!isProfileComplete && (
+          <div style={{ background: 'var(--warning-light)', border: '1px solid #fde68a', borderRadius: 'var(--radius-lg)', padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ fontWeight: '600', fontSize: '14px', color: 'var(--warning)' }}>Complete your profile to unlock everything</p>
+              <p style={{ fontSize: '13px', color: 'var(--gray-600)', marginTop: '2px' }}>Add education and career goal for personalised jobs, courses, and CTC insights</p>
             </div>
-            <div style={{textAlign:'right',flexShrink:0}}>
-              <p style={{fontSize:'22px',fontWeight:'700',color:'var(--success)'}}>{ctcData.range}</p>
-              <p style={{fontSize:'12px',color:'var(--gray-400)',marginTop:'2px'}}>
-                {expSlab==='0-2' ? 'expected first CTC' : showDeserving ? 'you deserve this CTC' : 'target CTC range'}
+            <Link to="/onboarding" className="btn btn-sm" style={{ background: 'var(--warning)', color: '#fff', borderColor: 'var(--warning)', whiteSpace: 'nowrap' }}>
+              Set up profile <ArrowRight size={14} />
+            </Link>
+          </div>
+        )}
+
+        {/* CTC card */}
+        {isProfileComplete && (
+          <div style={{ background: '#fff', border: '1px solid var(--gray-200)', borderLeft: '4px solid var(--brand)', borderRadius: '0 var(--radius-lg) var(--radius-lg) 0', padding: '1rem 1.25rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--brand)', marginBottom: '4px' }}>{ctcData.line}</p>
+                <p style={{ fontSize: '13px', color: 'var(--gray-600)', lineHeight: '1.6' }}>{ctcData.sub}</p>
+                {showDeserving && (
+                  <p style={{ fontSize: '13px', color: 'var(--success)', fontWeight: '500', marginTop: '6px' }}>
+                    ✨ With ₹{lastCtc}L last CTC — your next role should be higher. You have earned it.
+                  </p>
+                )}
+                {expSlab !== '0-2' && !showDeserving && (
+                  <p style={{ fontSize: '13px', color: 'var(--success)', fontWeight: '500', marginTop: '6px' }}>
+                    💪 Time to grow hard — your experience is your biggest asset. Claim what you deserve.
+                  </p>
+                )}
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <p style={{ fontSize: '24px', fontWeight: '700', color: 'var(--success)' }}>{ctcData.range}</p>
+                <p style={{ fontSize: '12px', color: 'var(--gray-400)', marginTop: '2px' }}>
+                  {expSlab === '0-2' ? 'expected first CTC' : showDeserving ? 'you deserve this CTC' : 'target CTC range'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rotating India facts */}
+        <div style={{ background: '#fff', border: '1px solid var(--gray-200)', borderLeft: '4px solid var(--warning)', borderRadius: '0 var(--radius-lg) var(--radius-lg) 0', padding: '1rem 1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '12px', minHeight: '72px' }}>
+          <span style={{ fontSize: '20px', flexShrink: 0 }}>💡</span>
+          <div style={{ flex: 1, transition: 'opacity .4s, transform .4s', opacity: factVisible ? 1 : 0, transform: factVisible ? 'translateY(0)' : 'translateY(-6px)' }}>
+            <p style={{ fontSize: '10px', fontWeight: '600', color: 'var(--gray-400)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '3px' }}>{fact.tag}</p>
+            <p style={{ fontSize: '13px', color: 'var(--gray-800)', lineHeight: '1.6' }}>{fact.text}</p>
+          </div>
+          <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+            {INDIA_FACTS.map((_, i) => (
+              <div key={i} style={{ width: '5px', height: '5px', borderRadius: '50%', background: i === factIdx ? 'var(--warning)' : 'var(--gray-300)', transition: 'background .3s' }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Multi-select services */}
+        <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--gray-400)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '10px' }}>
+          Select what you want to do — pick multiple
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px', marginBottom: '8px' }}>
+          {SERVICES.map(s => {
+            const isSel = selected.has(s.id)
+            return (
+              <div key={s.id} onClick={() => toggleService(s.id)} style={{ background: '#fff', border: `${isSel ? '2px' : '1px'} solid ${isSel ? 'var(--brand)' : 'var(--gray-200)'}`, borderRadius: 'var(--radius-lg)', padding: '12px', cursor: 'pointer', transition: 'all .15s', textAlign: 'center', position: 'relative', background: isSel ? 'var(--brand-light)' : '#fff' }}>
+                {isSel && (
+                  <div style={{ position: 'absolute', top: '8px', right: '8px', width: '18px', height: '18px', borderRadius: '50%', background: 'var(--brand)', color: '#fff', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
+                )}
+                <div style={{ fontSize: '22px', marginBottom: '5px' }}>{s.icon}</div>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: isSel ? 'var(--brand)' : 'var(--gray-800)' }}>{s.label}</p>
+                <p style={{ fontSize: '11px', color: 'var(--gray-400)', marginTop: '2px' }}>{s.sub}</p>
+              </div>
+            )
+          })}
+        </div>
+        <p style={{ fontSize: '12px', color: 'var(--gray-400)', textAlign: 'center', marginBottom: '4px' }}>
+          {selected.size} service{selected.size !== 1 ? 's' : ''} selected · {totalCost === 0 ? '₹0 estimated cost' : `₹${totalCost.toLocaleString('en-IN')} estimated`}
+        </p>
+      </div>
+
+      {/* Floating bottom banner */}
+      {showBanner && selected.size > 0 && (
+        <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 50, animation: 'slideUp .5s ease forwards', width: 'auto', minWidth: '340px', maxWidth: '500px' }}>
+          <div style={{ background: '#fff', border: '1.5px solid var(--brand)', borderRadius: '20px', padding: '12px 16px 12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', boxShadow: '0 4px 24px rgba(37,99,235,.2)' }}>
+            <div>
+              <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--gray-900)' }}>{bannerLabel}</p>
+              <p style={{ fontSize: '11px', color: 'var(--gray-400)', marginTop: '2px' }}>
+                {totalCost === 0 ? 'All selected services are free' : `₹${totalCost.toLocaleString('en-IN')} total · edit in My Plan`}
               </p>
             </div>
+            <button onClick={() => {
+              if (selected.size === 1) navigate(firstDest)
+              else navigate('/start-learning', { state: { selectedServices: [...selected] } })
+            }} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 20px', borderRadius: '12px', border: 'none', background: 'var(--brand)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap', animation: 'pulse 2s infinite' }}>
+              Ready to go <ArrowRight size={16} />
+            </button>
           </div>
-        )}
-
-        {!isProfileComplete && (
-          <div style={{background:'var(--warning-light)',border:'1px solid #fde68a',borderRadius:'var(--radius-lg)',padding:'1rem 1.25rem',marginBottom:'1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'1rem',flexWrap:'wrap'}}>
-            <div>
-              <p style={{fontWeight:'600',fontSize:'14px',color:'var(--warning)'}}>Complete your profile</p>
-              <p style={{fontSize:'13px',color:'var(--gray-600)',marginTop:'2px'}}>Add education and career goal to unlock personalised recommendations</p>
-            </div>
-            <Link to="/onboarding" className="btn btn-sm" style={{background:'var(--warning)',color:'#fff',borderColor:'var(--warning)',whiteSpace:'nowrap'}}>
-              Complete profile <ArrowRight size={14}/>
-            </Link>
-          </div>
-        )}
-
-        {/* Resume fact */}
-        <div style={{background:'var(--gray-50)',border:'1px dashed var(--gray-300)',borderRadius:'var(--radius-md)',padding:'.875rem 1.25rem',marginBottom:'1.5rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
-          <span style={{fontSize:'18px',flexShrink:0}}>💡</span>
-          <p style={{fontSize:'13px',color:'var(--gray-600)',lineHeight:'1.5'}}><strong>Did you know?</strong> {randomFact}</p>
         </div>
+      )}
 
-        {/* What do you want to do today */}
-        <p style={{fontSize:'13px',fontWeight:'600',color:'var(--gray-500)',marginBottom:'1rem',textTransform:'uppercase',letterSpacing:'.06em'}}>What would you like to do today?</p>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:'1rem'}}>
-          {INTENT_OPTIONS.map(({to,icon:Icon,label,sub,color,bg})=>(
-            <Link key={to} to={to} style={{textDecoration:'none'}}>
-              <div className="card" style={{cursor:'pointer',transition:'transform .15s,box-shadow .15s',display:'flex',gap:'1rem',alignItems:'flex-start'}}
-                onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='var(--shadow-md)'}}
-                onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=''}}>
-                <div style={{width:'40px',height:'40px',borderRadius:'var(--radius-md)',background:bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                  <Icon size={20} color={color}/>
-                </div>
-                <div>
-                  <p style={{fontWeight:'600',fontSize:'14px',color:'var(--gray-900)'}}>{label}</p>
-                  <p style={{fontSize:'12px',color:'var(--gray-500)',marginTop:'3px',lineHeight:'1.5'}}>{sub}</p>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
+      <style>{`
+        @keyframes slideUp { from { opacity:0; transform:translate(-50%,20px) } to { opacity:1; transform:translate(-50%,0) } }
+        @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.3)} 50%{box-shadow:0 0 0 8px rgba(37,99,235,0)} }
+      `}</style>
     </div>
   )
 }
