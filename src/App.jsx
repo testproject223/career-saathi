@@ -12,13 +12,14 @@ import Courses from './pages/Courses'
 import LinkedInPage from './pages/LinkedIn'
 import Projects from './pages/Projects'
 import StartLearning from './pages/StartLearning'
+import Interview from './pages/Interview'
 import Customize from './pages/Customize'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="spinner" style={{ width: '32px', height: '32px' }} />
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div className="spinner" style={{ width:'32px', height:'32px' }} />
     </div>
   )
   return user ? children : <Navigate to="/login" replace />
@@ -29,7 +30,7 @@ function AppRoutes() {
   return (
     <>
       <Navbar />
-      <div style={{ flex: 1 }}>
+      <div style={{ flex:1 }}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -40,6 +41,7 @@ function AppRoutes() {
           <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
           <Route path="/linkedin" element={<ProtectedRoute><LinkedInPage /></ProtectedRoute>} />
           <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+          <Route path="/interview" element={<ProtectedRoute><Interview /></ProtectedRoute>} />
           <Route path="/start-learning" element={<ProtectedRoute><StartLearning /></ProtectedRoute>} />
           <Route path="/customize" element={<ProtectedRoute><Customize /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

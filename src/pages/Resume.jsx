@@ -13,6 +13,15 @@ const EMPTY_RESUME = {
   certifications: '',
 }
 
+const RESUME_FACTS = [
+  { emoji:'🤖', stat:'75%',   text:'of resumes are filtered by ATS before a human ever sees them.' },
+  { emoji:'⏱',  stat:'7 sec', text:'is how long a recruiter spends on your resume on average.' },
+  { emoji:'📈', stat:'2×',    text:'more interview calls for AI-optimised resumes vs unoptimised.' },
+  { emoji:'🎯', stat:'40%',   text:'higher callback rate when achievements are quantified with numbers.' },
+  { emoji:'🔑', stat:'63%',   text:'of HRs use keyword search to shortlist — keywords are everything.' },
+  { emoji:'📄', stat:'1 page',text:'preferred by 85% of recruiters for under 10 years experience.' },
+]
+
 export default function Resume() {
   const { profile, user } = useAuth()
   const [mode, setMode] = useState('choose') // choose | build | upload | preview
@@ -75,6 +84,20 @@ export default function Resume() {
           <FileText size={20} color="var(--brand)" /> Resume Builder
         </h1>
         <p className="text-muted" style={{ marginBottom: '2rem' }}>Build a new resume from scratch or upload your existing one</p>
+        
+    <div style={{marginBottom:'1.5rem'}}>
+      <p style={{fontSize:'12px',fontWeight:'600',color:'var(--gray-500)',marginBottom:'10px',textTransform:'uppercase',letterSpacing:'.05em'}}>Did you know? Resume facts</p>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:'8px'}}>
+        {RESUME_FACTS.map((f,i)=>(
+          <div key={i} style={{background:'var(--gray-50)',border:'1px solid var(--gray-200)',borderRadius:'var(--radius-md)',padding:'.75rem',textAlign:'center'}}>
+            <p style={{fontSize:'22px',marginBottom:'4px'}}>{f.emoji}</p>
+            <p style={{fontSize:'16px',fontWeight:'700',color:'var(--brand)',marginBottom:'3px'}}>{f.stat}</p>
+            <p style={{fontSize:'11px',color:'var(--gray-600)',lineHeight:'1.4'}}>{f.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <div className="card" style={{ cursor: 'pointer', textAlign: 'center', padding: '2rem', transition: 'transform .15s, box-shadow .15s' }}
             onClick={() => setMode('build')}

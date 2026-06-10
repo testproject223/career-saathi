@@ -11,12 +11,13 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const links = [
-    { to: '/dashboard', label: 'Dashboard' },
-    { to: '/jobs', label: 'Jobs' },
-    { to: '/resume', label: 'Resume' },
-    { to: '/courses', label: 'Courses' },
-    { to: '/linkedin', label: 'LinkedIn' },
-    { to: '/projects', label: 'Projects' },
+    { to:'/dashboard', label:'Dashboard' },
+    { to:'/jobs',      label:'Jobs' },
+    { to:'/resume',    label:'Resume' },
+    { to:'/courses',   label:'Courses' },
+    { to:'/linkedin',  label:'LinkedIn' },
+    { to:'/projects',  label:'Projects' },
+    { to:'/interview', label:'Interview Prep' },
   ]
 
   async function handleSignOut() {
@@ -49,7 +50,7 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-user">
-          <Link to="/start-learning" className="btn btn-primary btn-sm" style={{ whiteSpace: 'nowrap' }}>
+          <Link to="/start-learning" className="btn btn-primary btn-sm" style={{ whiteSpace:'nowrap' }}>
             🚀 Start Learning
           </Link>
           <div className="navbar-avatar">{profile?.name?.[0]?.toUpperCase() || 'U'}</div>
