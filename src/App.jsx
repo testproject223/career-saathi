@@ -1,12 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/layout/Navbar'
+import ChatBot from './components/ui/ChatBot'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 import Customize from './pages/Customize'
-import { Jobs, Resume, Courses, LinkedInPage, Projects } from './pages/Placeholders'
+import Courses from './pages/Courses'
+import Resume from './pages/Resume'
+import LinkedInPage from './pages/LinkedIn'
+import { Jobs, Projects } from './pages/Placeholders'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -19,6 +23,7 @@ function ProtectedRoute({ children }) {
 }
 
 function AppRoutes() {
+  const { user } = useAuth()
   return (
     <>
       <Navbar />
@@ -37,6 +42,7 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </div>
+      {user && <ChatBot />}
     </>
   )
 }
