@@ -6,11 +6,13 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
-import Customize from './pages/Customize'
-import Courses from './pages/Courses'
+import Jobs from './pages/Jobs'
 import Resume from './pages/Resume'
+import Courses from './pages/Courses'
 import LinkedInPage from './pages/LinkedIn'
-import { Jobs, Projects } from './pages/Placeholders'
+import Projects from './pages/Projects'
+import StartLearning from './pages/StartLearning'
+import Customize from './pages/Customize'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -38,6 +40,7 @@ function AppRoutes() {
           <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
           <Route path="/linkedin" element={<ProtectedRoute><LinkedInPage /></ProtectedRoute>} />
           <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+          <Route path="/start-learning" element={<ProtectedRoute><StartLearning /></ProtectedRoute>} />
           <Route path="/customize" element={<ProtectedRoute><Customize /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

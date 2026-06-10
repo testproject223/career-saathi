@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { Briefcase, User, Sparkles, LogOut, Menu, X } from 'lucide-react'
+import { Briefcase, LogOut, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import './Navbar.css'
 
@@ -17,7 +17,6 @@ export default function Navbar() {
     { to: '/courses', label: 'Courses' },
     { to: '/linkedin', label: 'LinkedIn' },
     { to: '/projects', label: 'Projects' },
-    { to: '/customize', label: 'Customize' },
   ]
 
   async function handleSignOut() {
@@ -41,25 +40,21 @@ export default function Navbar() {
 
         <div className={`navbar-links ${menuOpen ? 'open' : ''}`}>
           {links.map(l => (
-            <Link
-              key={l.to}
-              to={l.to}
+            <Link key={l.to} to={l.to}
               className={`navbar-link ${location.pathname === l.to ? 'active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
+              onClick={() => setMenuOpen(false)}>
               {l.label}
             </Link>
           ))}
         </div>
 
         <div className="navbar-user">
-          <div className="navbar-avatar">
-            {profile?.name?.[0]?.toUpperCase() || 'U'}
-          </div>
+          <Link to="/start-learning" className="btn btn-primary btn-sm" style={{ whiteSpace: 'nowrap' }}>
+            🚀 Start Learning
+          </Link>
+          <div className="navbar-avatar">{profile?.name?.[0]?.toUpperCase() || 'U'}</div>
           <span className="navbar-name">{profile?.name?.split(' ')[0] || 'User'}</span>
-          <button className="btn btn-ghost btn-sm" onClick={handleSignOut}>
-            <LogOut size={14} />
-          </button>
+          <button className="btn btn-ghost btn-sm" onClick={handleSignOut}><LogOut size={14} /></button>
         </div>
       </div>
     </nav>
