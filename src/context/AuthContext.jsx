@@ -33,7 +33,20 @@ export function AuthProvider({ children }) {
   }
 
   async function signUp(email, password, name) {
-    return supabase.auth.signUp({ email, password, options: { data: { name } } })
+    const result = await supabase.auth.signUp({ email, password, options: { data: { name } } })
+    return result
+  }
+
+  async function signUpWithMobile(mobile, password, name) {
+    const digits = mobile.replace(/\D/g, '').slice(-10)
+    const email = '91' + digits + '@careersaathi.app'
+    return signUp(email, password, name)
+  }
+
+  async function signInWithMobile(mobile, password) {
+    const digits = mobile.replace(/\D/g, '').slice(-10)
+    const email = '91' + digits + '@careersaathi.app'
+    return signIn(email, password)
   }
 
   async function signOut() {
@@ -54,7 +67,7 @@ export function AuthProvider({ children }) {
   const isProfileComplete = !!(profile?.city && profile?.education && profile?.aspiration)
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut, updateProfile, fetchProfile, isProfileComplete }}>
+    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signUpWithMobile, signInWithMobile, signOut, updateProfile, fetchProfile, isProfileComplete }}>
       {children}
     </AuthContext.Provider>
   )

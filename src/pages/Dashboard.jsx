@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import ProfileBanner from '../components/ui/ProfileBanner'
 import { CTC_MAP, getPersonaLine } from '../lib/persona'
@@ -93,18 +93,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Profile incomplete warning */}
-        {!isProfileComplete && (
-          <div style={{ background: 'var(--warning-light)', border: '1px solid #fde68a', borderRadius: 'var(--radius-lg)', padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-            <div>
-              <p style={{ fontWeight: '600', fontSize: '14px', color: 'var(--warning)' }}>Complete your profile to unlock everything</p>
-              <p style={{ fontSize: '13px', color: 'var(--gray-600)', marginTop: '2px' }}>Add education and career goal for personalised jobs, courses, and CTC insights</p>
-            </div>
-            <Link to="/onboarding" className="btn btn-sm" style={{ background: 'var(--warning)', color: '#fff', borderColor: 'var(--warning)', whiteSpace: 'nowrap' }}>
-              Set up profile <ArrowRight size={14} />
-            </Link>
-          </div>
-        )}
+        {/* Smart inline profile banner — disappears after all fields filled */}
+        {!isProfileComplete && <ProfileBanner />}
 
         {/* CTC card */}
         {isProfileComplete && (

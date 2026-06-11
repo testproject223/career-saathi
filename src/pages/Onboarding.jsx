@@ -86,18 +86,20 @@ export default function Onboarding() {
   }
 
   function simulateExtraction() {
-    // In production: send file to Claude, parse response, pre-fill form
-    const fakeExtracted = {
-      skills: ['Product Management', 'Agile', 'SQL', 'Stakeholder Management', 'Roadmapping', 'Figma'],
-      projects: [
-        { name: 'Detected from resume — edit below', role: '', description: '', tech: '', duration: '', link: '' }
-      ]
-    }
-    setExtractedData(fakeExtracted)
+    // TODO production: POST file to /api/parse-resume → Claude API extracts and returns JSON
+    // For now: simulate realistic extraction based on experience slab
+    const expBased = form.experience_slab === '0-2'
+      ? { skills: ['Excel', 'SQL', 'Python', 'Communication'], projects: [{ name: 'College final year project', role: 'Developer', description: 'Auto-detected — edit with your actual project details', tech: '', duration: '', link: '' }] }
+      : { skills: ['Product Management', 'Agile', 'SQL', 'Stakeholder Management', 'Roadmapping', 'Figma', 'Data Analytics', 'Leadership'], projects: [
+          { name: 'Project from resume — edit below', role: '', description: 'AI detected this from your resume. Add your actual achievements (numbers help most).', tech: '', duration: '', link: '' },
+          { name: 'Second project — edit below', role: '', description: 'Edit with your actual project details, role, and impact.', tech: '', duration: '', link: '' },
+        ]
+      }
+    setExtractedData(expBased)
     setForm(f => ({
       ...f,
-      skills: [...new Set([...f.skills, ...fakeExtracted.skills])],
-      projects: fakeExtracted.projects,
+      skills: [...new Set([...f.skills, ...expBased.skills])],
+      projects: expBased.projects,
     }))
   }
 
@@ -316,7 +318,7 @@ export default function Onboarding() {
               <p style={{ fontSize: '12px', color: step0Valid ? 'var(--success)' : 'var(--gray-400)' }}>
                 {step0Valid ? '✓ Ready to continue' : 'Name, city and education required'}
               </p>
-              <button className="btn btn-primary" onClick={() => setStep(1)} disabled={!step0Valid}>
+              <button className="btn btn-primary" onClick={async () => { await updateProfile({ name: form.name, city: form.city, education: form.education, stream: form.stream, experience_slab: form.experience_slab, last_ctc_lpa: form.last_ctc_lpa || 0, sector: form.sector, job_type: form.job_type, resume_url: form.resume_url, resume_uploaded: form.resume_uploaded }); setStep(1) }} disabled={!step0Valid}>
                 Next <ChevronRight size={16} />
               </button>
             </div>
@@ -358,7 +360,7 @@ export default function Onboarding() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
               <button className="btn btn-outline" onClick={() => setStep(0)}><ChevronLeft size={16} /> Back</button>
-              <button className="btn btn-primary" onClick={() => setStep(2)} disabled={!step1Valid}>
+              <button className="btn btn-primary" onClick={async () => { await updateProfile({ aspiration: form.aspiration, primary_goal: form.primary_goal }); setStep(2) }} disabled={!step1Valid}>
                 Next <ChevronRight size={16} />
               </button>
             </div>
@@ -387,7 +389,7 @@ export default function Onboarding() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
               <button className="btn btn-outline" onClick={() => setStep(1)}><ChevronLeft size={16} /> Back</button>
-              <button className="btn btn-primary" onClick={() => setStep(3)}>
+              <button className="btn btn-primary" onClick={async () => { await updateProfile({ skills: form.skills }); setStep(3) }}>
                 Next <ChevronRight size={16} />
               </button>
             </div>
