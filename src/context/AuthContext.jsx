@@ -14,37 +14,26 @@ export function AuthProvider({ children }) {
       if (session?.user) fetchProfile(session.user.id)
       else setLoading(false)
     })
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
       else { setProfile(null); setLoading(false) }
     })
-
     return () => subscription.unsubscribe()
   }, [])
 
   async function fetchProfile(userId) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
+    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
     setProfile(data)
     setLoading(false)
   }
 
   async function signIn(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    return { data, error }
+    return supabase.auth.signInWithPassword({ email, password })
   }
 
   async function signUp(email, password, name) {
-    const { data, error } = await supabase.auth.signUp({
-      email, password,
-      options: { data: { name } }
-    })
-    return { data, error }
+    return supabase.auth.signUp({ email, password, options: { data: { name } } })
   }
 
   async function signOut() {
@@ -62,8 +51,10 @@ export function AuthProvider({ children }) {
     return { data, error }
   }
 
+  const isProfileComplete = !!(profile?.city && profile?.education && profile?.aspiration)
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut, updateProfile, fetchProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut, updateProfile, fetchProfile, isProfileComplete }}>
       {children}
     </AuthContext.Provider>
   )

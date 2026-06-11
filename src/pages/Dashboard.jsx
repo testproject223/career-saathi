@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
+import ProfileBanner from '../components/ui/ProfileBanner'
 import { CTC_MAP, getPersonaLine } from '../lib/persona'
 
 const INDIA_FACTS = [
@@ -22,7 +23,7 @@ const SERVICES = [
 ]
 
 export default function Dashboard() {
-  const { profile } = useAuth()
+  const { profile, isProfileComplete } = useAuth()
   const navigate = useNavigate()
   const [selected, setSelected] = useState(new Set(['jobs']))
   const [showBanner, setShowBanner] = useState(false)
@@ -74,7 +75,7 @@ export default function Dashboard() {
     : `${selected.size} services selected · ${totalCost === 0 ? 'Free' : '₹' + totalCost.toLocaleString('en-IN')}`
 
   const fact = INDIA_FACTS[factIdx]
-  const isProfileComplete = profile?.city && profile?.aspiration
+
 
   return (
     <div style={{ padding: '1.5rem 0', paddingBottom: '100px' }}>

@@ -61,7 +61,7 @@ export default function Courses() {
   const [search, setSearch] = useState('')
   const [activePlatform, setActivePlatform] = useState('all')
   const [costFilter, setCostFilter] = useState('all')
-  const [selectedBudgetTile, setSelectedBudgetTile] = useState(null)
+  const [selectedBudgetTile, setSelectedBudgetTile] = useState(null) // null = no filter
   const [enrolled, setEnrolled] = useState(new Set())
 
   useEffect(()=>{ loadEnrolled() }, [profile])
@@ -83,19 +83,26 @@ export default function Courses() {
     }
   }
 
-  const budgetMax = selectedBudgetTile ? BUDGET_TILES.find(b=>b.value===selectedBudgetTile)?.max || 99999 : 99999
+  const budgetMax = useMemo(() => {
+    if (!selectedBudgetTile) return 99999
+    const tile = BUDGET_TILES.find(b => b.value === selectedBudgetTile)
+    return tile ? tile.max : 99999
+  }, [selectedBudgetTile])
 
   const filtered = useMemo(()=>{
     const q = search.toLowerCase().trim()
-    return ALL_COURSES.filter(c=>{
-      const matchSearch = !q || c.title.toLowerCase().includes(q) || c.skills.some(s=>s.includes(q)) || c.level.toLowerCase().includes(q)
-      const matchPlatform = activePlatform==='all' || c.platform===activePlatform
-      const matchCost = costFilter==='all' ? true : costFilter==='free' ? c.cost===0 : c.cost>0
-      const matchBudget = !selectedBudgetTile || c.cost<=budgetMax
-      const matchRole = !profile?.aspiration || c.role.includes(profile.aspiration) || q
-      return matchSearch && matchPlatform && matchCost && matchBudget && (matchRole || q)
+    return ALL_COURSES.filter(course=>{
+      const matchSearch = !q ||
+        course.title.toLowerCase().includes(q) ||
+        course.skills.some(s => s.toLowerCase().includes(q)) ||
+        course.level.toLowerCase().includes(q)
+      const matchPlatform = activePlatform==='all' || course.platform===activePlatform
+      const matchCost = costFilter==='all' ? true : costFilter==='free' ? course.cost===0 : course.cost>0
+      const matchBudget = selectedBudgetTile === null || course.cost <= budgetMax
+      const matchRole = !q && profile?.aspiration ? course.role.includes(profile.aspiration) : true
+      return matchSearch && matchPlatform && matchCost && matchBudget && matchRole
     })
-  }, [search, activePlatform, costFilter, selectedBudgetTile, profile])
+  }, [search, activePlatform, costFilter, selectedBudgetTile, budgetMax, profile])
 
   const totalEnrolledCost = [...enrolled].reduce((s,title)=>{ const c=ALL_COURSES.find(x=>x.title===title); return s+(c?.cost||0) },0)
 
@@ -114,8 +121,8 @@ export default function Courses() {
           <p style={{fontSize:'12px',fontWeight:'600',color:'var(--gray-500)',marginBottom:'8px',textTransform:'uppercase',letterSpacing:'.05em'}}>Choose your learning budget</p>
           <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
             {BUDGET_TILES.map(t=>(
-              <div key={t.value} onClick={()=>setSelectedBudgetTile(selectedBudgetTile===t.value?null:t.value)}
-                style={{padding:'8px 14px',border:`1.5px solid ${selectedBudgetTile===t.value?'var(--brand)':'var(--gray-200)'}`,borderRadius:'var(--radius-md)',cursor:'pointer',background:selectedBudgetTile===t.value?'var(--brand-light)':'#fff',transition:'all .15s',textAlign:'center'}}>
+              <div key={t.value} onClick={()=>{ setSelectedBudgetTile(prev => prev===t.value ? null : t.value) }}
+                style={{padding:'8px 14px',border:`1.5px solid ${selectedBudgetTile===t.value?'var(--brand)':'var(--gray-200)'}`,borderRadius:'var(--radius-md)',cursor:'pointer',background:selectedBudgetTile===t.value?'var(--brand-light)':'#fff',transition:'all .15s',textAlign:'center',userSelect:'none'}}>
                 <p style={{fontSize:'13px',fontWeight:'600',color:selectedBudgetTile===t.value?'var(--brand)':'var(--gray-700)'}}>{t.label}</p>
                 <p style={{fontSize:'11px',color:'var(--gray-400)',marginTop:'2px'}}>{t.tag}</p>
               </div>
